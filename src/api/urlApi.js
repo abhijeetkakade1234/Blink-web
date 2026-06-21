@@ -1,7 +1,11 @@
 import axios from "axios";
 
+export function getApiBaseUrl() {
+  return (import.meta.env.VITE_API_URL || "http://localhost:8080").replace(/\/+$/, "");
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080",
+  baseURL: getApiBaseUrl(),
   timeout: 2000,
 });
 

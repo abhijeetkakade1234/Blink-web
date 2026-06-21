@@ -1,4 +1,4 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 
 const links = [
   { to: "/dashboard", label: "Dashboard" },
@@ -67,7 +67,7 @@ export default function AppShell({ children }) {
               </div>
             </div>
           </header>
-          <main className="p-6 lg:p-8">{children}</main>
+          <main className="p-6 lg:p-8">{children ?? <Outlet />}</main>
         </div>
       </div>
     </div>
