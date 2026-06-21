@@ -1,3 +1,5 @@
+import { formatShortUrl } from "./format";
+
 export function fallbackAnalytics(code) {
   return {
     code,
@@ -28,7 +30,7 @@ export function buildFallbackLink(originalUrl) {
   return {
     id: crypto.randomUUID(),
     code,
-    shortUrl: `blink.to/${code}`,
+    shortUrl: formatShortUrl(code),
     originalUrl,
     clicks: 0,
     createdAt: new Date().toISOString(),

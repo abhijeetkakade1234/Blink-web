@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { deleteUrl, listUrls, updateUrl } from "../api/urlApi";
 import EditLinkModal from "../components/EditLinkModal";
 import LinkCard from "../components/LinkCard";
@@ -12,6 +13,7 @@ import { formatShortUrl } from "../utils/format";
 const pageSize = 6;
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const { links, setLinks } = useLocalLinks();
   const [deletingId, setDeletingId] = useState("");
   const [editingItem, setEditingItem] = useState(null);
@@ -304,7 +306,7 @@ export default function DashboardPage() {
             <div className="space-y-3">
               <button
                 type="button"
-                onClick={() => window.location.assign("/")}
+                onClick={() => navigate("/")}
                 className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500"
               >
                 Create new link

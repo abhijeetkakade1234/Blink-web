@@ -13,6 +13,7 @@ Create `.env`:
 
 ```bash
 VITE_API_URL=https://url-shortener-api.onrender.com
+VITE_PUBLIC_BASE_URL=https://your-short-domain.com
 ```
 
 ## Build

@@ -3,8 +3,6 @@ import { Link, NavLink } from "react-router-dom";
 const links = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/", label: "Links" },
-  { to: "/analytics/sample", label: "Analytics" },
-  { to: "/dashboard", label: "Settings" },
 ];
 
 export default function AppShell({ children }) {
