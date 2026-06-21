@@ -15,6 +15,12 @@ export default function AnalyticsPage() {
     let cancelled = false;
 
     async function loadStats() {
+      if (code === "sample") {
+        setData(fallbackAnalytics(code));
+        setStatus({ loading: false, error: "" });
+        return;
+      }
+
       try {
         const response = await getUrlStats(code);
         if (!cancelled) {
@@ -37,11 +43,11 @@ export default function AnalyticsPage() {
   }, [code]);
 
   if (status.loading) {
-    return <div className="text-sm text-slate-500 dark:text-slate-400">Loading analytics...</div>;
+    return <div className="text-sm text-slate-500">Loading analytics...</div>;
   }
 
   if (status.error) {
-    return <div className="text-sm text-rose-600 dark:text-rose-300">{status.error}</div>;
+    return <div className="text-sm text-rose-600">{status.error}</div>;
   }
 
   return (

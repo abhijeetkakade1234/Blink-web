@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { deleteUrl, listUrls, updateUrl } from "../api/urlApi";
 import EditLinkModal from "../components/EditLinkModal";
 import LinkCard from "../components/LinkCard";
+import MetricCard from "../components/MetricCard";
 import Pagination from "../components/Pagination";
 import QrModal from "../components/QrModal";
 import SectionHeading from "../components/SectionHeading";

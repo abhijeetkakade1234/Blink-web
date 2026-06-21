@@ -3,7 +3,7 @@ import { Link, NavLink } from "react-router-dom";
 const links = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/", label: "Links" },
-  { to: "/analytics/demo", label: "Analytics" },
+  { to: "/analytics/sample", label: "Analytics" },
   { to: "/dashboard", label: "Settings" },
 ];
 
@@ -13,8 +13,8 @@ export default function AppShell({ children }) {
       <div className="min-h-screen lg:grid lg:grid-cols-[240px_1fr]">
         <aside className="border-b border-slate-200 bg-white lg:border-b-0 lg:border-r">
           <div className="flex items-center gap-3 px-6 py-6">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-2xl text-blue-600">
-              ↗
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-sm font-semibold text-blue-600">
+              BL
             </div>
             <Link to="/dashboard" className="text-3xl font-semibold tracking-tight text-slate-900">
               Blink
@@ -25,7 +25,7 @@ export default function AppShell({ children }) {
             <div className="space-y-2">
               {links.map((link) => (
                 <NavLink
-                  key={link.to}
+                  key={`${link.label}-${link.to}`}
                   to={link.to}
                   className={({ isActive }) =>
                     [
