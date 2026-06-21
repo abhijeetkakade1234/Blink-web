@@ -10,10 +10,10 @@ export default function SimpleBarChart({ items = [], valueKey = "value", labelKe
         return (
           <div key={item[labelKey]}>
             <div className="mb-2 flex items-center justify-between text-sm">
-              <span className="text-slate-600 dark:text-slate-300">{item[labelKey]}</span>
-              <span className="font-medium">{value}</span>
+              <span className="text-slate-600">{item[labelKey]}</span>
+              <span className="font-medium text-slate-900">{value}</span>
             </div>
-            <div className="h-3 rounded-full bg-slate-100 dark:bg-slate-800">
+            <div className="h-3 rounded-full bg-slate-100">
               <div className={`h-3 rounded-full ${color}`} style={{ width }} />
             </div>
           </div>

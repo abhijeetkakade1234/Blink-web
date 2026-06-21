@@ -58,15 +58,15 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
-        <div className="rounded-[28px] border border-white/70 bg-white/85 p-5 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/70">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="mb-4 text-xl font-semibold">Country breakdown</h2>
           <SimpleBarChart items={data.countries} color="bg-cyan-500" />
         </div>
-        <div className="rounded-[28px] border border-white/70 bg-white/85 p-5 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/70">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="mb-4 text-xl font-semibold">Device stats</h2>
-          <SimpleBarChart items={data.devices} color="bg-rose-400" />
+          <SimpleBarChart items={data.devices} color="bg-blue-500" />
         </div>
-        <div className="rounded-[28px] border border-white/70 bg-white/85 p-5 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/70">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="mb-4 text-xl font-semibold">Browser stats</h2>
           <SimpleBarChart items={data.browsers} color="bg-slate-700" />
         </div>

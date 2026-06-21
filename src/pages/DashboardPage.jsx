@@ -157,51 +157,168 @@ export default function DashboardPage() {
 
   return (
     <section>
-      <SectionHeading
-        title="Dashboard"
-        body="Manage the links you created, clean out old ones, and jump into analytics when needed."
-      />
-      <div className="mb-6 flex flex-col gap-3 rounded-[28px] border border-white/70 bg-white/85 p-4 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/70 md:flex-row md:items-center md:justify-between">
-        <input
-          type="search"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search by URL or short code"
-          className="w-full rounded-full border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:focus:ring-cyan-950 md:max-w-md"
+      <div className="mb-8 grid gap-5 xl:grid-cols-4">
+        <MetricCard label="Total Links" value={remoteMeta.enabled ? remoteMeta.totalItems : links.length} />
+        <MetricCard label="Total Clicks" value={links.reduce((sum, item) => sum + (item.clicks || 0), 0)} />
+        <MetricCard
+          label="Active Links"
+          value={links.filter((item) => !item.expiresAt).length}
         />
-        <div className="text-sm text-slate-500 dark:text-slate-400">
-          {(remoteMeta.enabled ? remoteMeta.totalItems : filteredLinks.length)} link
-          {(remoteMeta.enabled ? remoteMeta.totalItems : filteredLinks.length) === 1 ? "" : "s"}
-        </div>
+        <MetricCard
+          label="This Week"
+          value={links.slice(0, 7).reduce((sum, item) => sum + (item.clicks || 0), 0)}
+        />
       </div>
 
-      {status.note ? <p className="mb-5 text-sm text-amber-600 dark:text-amber-300">{status.note}</p> : null}
-      {status.loading ? (
-        <div className="rounded-[32px] border border-dashed border-slate-300 bg-white/70 p-8 text-center text-slate-500 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400">
-          Loading links...
-        </div>
-      ) : null}
+      <div className="grid gap-6 xl:grid-cols-[1.9fr_0.95fr]">
+        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 md:flex-row md:items-center md:justify-between">
+            <div className="text-2xl font-semibold text-slate-900">Recent Links</div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search by URL or short code"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100 sm:w-72"
+              />
+              <LinkCardPlaceholder />
+            </div>
+          </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        {paginatedLinks.map((item) => (
-          <LinkCard
-            key={item.code}
-            item={item}
-            onCopy={handleCopy}
-            onDelete={handleDelete}
-            onEdit={setEditingItem}
-            onQr={setQrItem}
-            deletingId={deletingId}
-          />
-        ))}
+          {status.note ? <p className="px-6 pt-4 text-sm text-amber-600">{status.note}</p> : null}
+          {status.loading ? <p className="px-6 py-8 text-sm text-slate-500">Loading links...</p> : null}
+
+          {!status.loading && paginatedLinks.length ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left">
+                <thead>
+                  <tr className="border-b border-slate-200 text-sm text-slate-500">
+                    <th className="px-6 py-4 font-medium">Original URL</th>
+                    <th className="px-6 py-4 font-medium">Short URL</th>
+                    <th className="px-6 py-4 font-medium">Clicks</th>
+                    <th className="px-6 py-4 font-medium">Created</th>
+                    <th className="px-6 py-4 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedLinks.map((item) => (
+                    <tr key={item.id ?? item.code} className="border-b border-slate-100 align-top">
+                      <td className="px-6 py-4">
+                        <div className="max-w-[320px] truncate text-sm text-slate-600">{item.originalUrl}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <a
+                          href={item.shortUrl ?? formatShortUrl(item.code)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                        >
+                          {item.shortUrl ?? formatShortUrl(item.code)}
+                        </a>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-900">{item.clicks ?? 0}</td>
+                      <td className="px-6 py-4 text-sm text-slate-500">
+                        {new Intl.DateTimeFormat("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        }).format(new Date(item.createdAt))}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(item.code)}
+                            className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                          >
+                            Copy
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setQrItem(item)}
+                            className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                          >
+                            QR
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingItem(item)}
+                            className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(item.id)}
+                            disabled={deletingId === item.id}
+                            className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                          >
+                            {deletingId === item.id ? "Deleting..." : "Delete"}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
+
+          {!status.loading && !paginatedLinks.length ? (
+            <div className="px-6 py-8 text-sm text-slate-500">No matching links. Try a different search or create a new one.</div>
+          ) : null}
+
+          <div className="px-6 py-5">
+            <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mb-4 text-2xl font-semibold text-slate-900">Analytics Overview</div>
+            <div className="mb-4 text-sm text-slate-500">Total Clicks</div>
+            <div className="text-4xl font-semibold text-slate-900">
+              {links.reduce((sum, item) => sum + (item.clicks || 0), 0)}
+            </div>
+            <div className="mt-6 space-y-4">
+              {links.slice(0, 5).map((item) => (
+                <div key={item.code} className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium text-blue-600">
+                      {item.shortUrl ?? formatShortUrl(item.code)}
+                    </div>
+                    <div className="truncate text-sm text-slate-500">{item.originalUrl}</div>
+                  </div>
+                  <div className="text-sm font-medium text-slate-900">{item.clicks ?? 0}</div>
+                </div>
+              ))}
+              {!links.length ? <div className="text-sm text-slate-500">Analytics will populate as links start getting clicks.</div> : null}
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mb-3 text-xl font-semibold text-slate-900">Quick Actions</div>
+            <p className="mb-4 text-sm text-slate-500">Use these common shortcuts for day-to-day link management.</p>
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => window.location.assign("/")}
+                className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500"
+              >
+                Create new link
+              </button>
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                Clear search
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-      {!status.loading && !filteredLinks.length ? (
-        <div className="rounded-[32px] border border-dashed border-slate-300 bg-white/70 p-8 text-center text-slate-500 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400">
-          No matching links. Try a different search or create a new one.
-        </div>
-      ) : null}
-
-      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       <EditLinkModal
         item={editingItem}
@@ -212,5 +329,13 @@ export default function DashboardPage() {
       />
       <QrModal item={qrItem} open={Boolean(qrItem)} onClose={() => setQrItem(null)} />
     </section>
+  );
+}
+
+function LinkCardPlaceholder() {
+  return (
+    <div className="text-sm text-slate-500">
+      Standard link dashboard
+    </div>
   );
 }

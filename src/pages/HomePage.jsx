@@ -56,60 +56,60 @@ export default function HomePage() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.35fr_0.85fr]">
-      <section className="rounded-[32px] border border-white/70 bg-white/85 p-6 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/70 sm:p-8">
+    <div className="grid gap-6 xl:grid-cols-[1.5fr_0.9fr]">
+      <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
         <SectionHeading
-          title="Shorten long URLs instantly"
-          body="Paste your long link, create a short code, and keep everything in one clean workspace."
+          title="Create a new short link"
+          body="Paste a long URL, generate a short code, and keep it ready for sharing."
         />
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <label className="block">
-            <span className="mb-2 block text-sm font-medium text-slate-600 dark:text-slate-300">Paste your long link</span>
+            <span className="mb-2 block text-sm font-medium text-slate-600">Paste your long link</span>
             <input
               type="url"
               value={longUrl}
               onChange={(event) => setLongUrl(event.target.value)}
               placeholder="https://example.com/long/url"
               required
-              className="w-full rounded-[24px] border border-slate-200 bg-white px-5 py-4 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:ring-cyan-950"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
             />
           </label>
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="submit"
               disabled={status.loading}
-              className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+              className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {status.loading ? "Creating..." : "Create short link"}
             </button>
             <button
               type="button"
               onClick={() => navigate("/dashboard")}
-              className="rounded-full bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
             >
               Open dashboard
             </button>
           </div>
-          {status.error ? <p className="text-sm text-rose-600 dark:text-rose-300">{status.error}</p> : null}
+          {status.error ? <p className="text-sm text-rose-600">{status.error}</p> : null}
         </form>
 
         {result ? (
-          <div className="mt-8 rounded-[28px] bg-sand p-5 dark:bg-slate-950">
-            <div className="mb-2 text-sm uppercase tracking-[0.2em] text-slate-500">Generated short link</div>
+          <div className="mt-8 rounded-3xl border border-slate-200 bg-slate-50 p-6">
+            <div className="mb-2 text-sm font-medium text-slate-500">Generated short link</div>
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <a
                 href={result.shortUrl ?? formatShortUrl(result.code)}
                 target="_blank"
                 rel="noreferrer"
-                className="text-2xl font-semibold text-cyan-700 dark:text-cyan-400"
+                className="text-2xl font-semibold text-blue-600"
               >
                 {result.shortUrl ?? formatShortUrl(result.code)}
               </a>
               <button
                 type="button"
                 onClick={handleCopy}
-                className="rounded-full bg-cyan-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-cyan-400"
+                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500"
               >
                 Copy
               </button>
@@ -125,18 +125,18 @@ export default function HomePage() {
           value={links.reduce((sum, item) => sum + (item.clicks || 0), 0)}
           tone="cyan"
         />
-        <div className="rounded-[28px] border border-white/70 bg-white/85 p-5 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-900/70">
-          <div className="mb-3 text-sm uppercase tracking-[0.2em] text-slate-400">Recent links</div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="mb-4 text-lg font-semibold text-slate-900">Recent links</div>
           <div className="space-y-4">
             {links.slice(0, 3).map((item) => (
-              <div key={item.code} className="rounded-3xl bg-slate-50 px-4 py-3 dark:bg-slate-950">
-                <div className="truncate text-sm text-slate-500 dark:text-slate-400">{item.originalUrl}</div>
-                <div className="mt-1 font-medium text-slate-900 dark:text-white">
+              <div key={item.code} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <div className="truncate text-sm text-slate-500">{item.originalUrl}</div>
+                <div className="mt-1 font-medium text-slate-900">
                   {item.shortUrl ?? formatShortUrl(item.code)}
                 </div>
               </div>
             ))}
-            {!links.length ? <p className="text-sm text-slate-500 dark:text-slate-400">Your created links will show up here.</p> : null}
+            {!links.length ? <p className="text-sm text-slate-500">Your created links will show up here.</p> : null}
           </div>
         </div>
       </aside>
