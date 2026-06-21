@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { deleteUrl, listUrls, updateUrl } from "../api/urlApi";
+import { deleteUrl, getApiBaseUrl, listUrls, updateUrl } from "../api/urlApi";
 import EditLinkModal from "../components/EditLinkModal";
 import LinkCard from "../components/LinkCard";
 import MetricCard from "../components/MetricCard";
@@ -12,6 +12,12 @@ import { isLocalDevelopment } from "../utils/environment";
 import { formatShortUrl } from "../utils/format";
 
 const pageSize = 6;
+const wakeRetryDelayMs = 2500;
+const wakeMaxAttempts = 12;
+
+function sleep(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -21,28 +27,68 @@ export default function DashboardPage() {
   const [qrItem, setQrItem] = useState(null);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [status, setStatus] = useState({ loading: true, note: "" });
+  const [status, setStatus] = useState({ loading: true, note: "", phase: "loading", attempt: 0 });
   const [savingEdit, setSavingEdit] = useState(false);
   const [remoteMeta, setRemoteMeta] = useState({ enabled: false, totalPages: 1, totalItems: 0 });
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadDashboard() {
-      try {
-        const data = await listUrls({ page, size: pageSize, query: search.trim() });
-        if (cancelled) return;
+    async function fetchDashboardData() {
+      const data = await listUrls({ page, size: pageSize, query: search.trim() });
+      const items = Array.isArray(data) ? data : data.items ?? [];
+      const normalized = items.map((item) => ({
+        id: item.id,
+        code: item.shortCode ?? item.code,
+        shortUrl: item.shortUrl ?? formatShortUrl(item.shortCode ?? item.code),
+        originalUrl: item.originalUrl,
+        clicks: item.clickCount ?? item.clicks ?? 0,
+        createdAt: item.createdAt,
+        expiresAt: item.expiresAt ?? null,
+      }));
 
-        const items = Array.isArray(data) ? data : data.items ?? [];
-        const normalized = items.map((item) => ({
-          id: item.id,
-          code: item.shortCode ?? item.code,
-          shortUrl: item.shortUrl ?? formatShortUrl(item.shortCode ?? item.code),
-          originalUrl: item.originalUrl,
-          clicks: item.clickCount ?? item.clicks ?? 0,
-          createdAt: item.createdAt,
-          expiresAt: item.expiresAt ?? null,
-        }));
+      return { data, normalized };
+    }
+
+    async function waitForBackendWake() {
+      const apiBaseUrl = getApiBaseUrl();
+
+      for (let currentAttempt = 1; currentAttempt <= wakeMaxAttempts; currentAttempt += 1) {
+        if (cancelled) return false;
+
+        setStatus({
+          loading: true,
+          phase: "waking",
+          attempt: currentAttempt,
+          note: `Backend is starting. Please wait a minute${currentAttempt ? ` (${currentAttempt}/${wakeMaxAttempts})` : ""}.`,
+        });
+
+        try {
+          const response = await fetch(`${apiBaseUrl}/actuator/health`, {
+            headers: { Accept: "application/json" },
+          });
+
+          if (response.ok) {
+            return true;
+          }
+        } catch {
+          // ponytail: health fetch is only to keep users on our loader while Render wakes up.
+        }
+
+        if (currentAttempt < wakeMaxAttempts) {
+          await sleep(wakeRetryDelayMs);
+        }
+      }
+
+      return false;
+    }
+
+    async function loadDashboard() {
+      setStatus({ loading: true, note: "", phase: "loading", attempt: 0 });
+
+      try {
+        const { data, normalized } = await fetchDashboardData();
+        if (cancelled) return;
 
         setLinks(normalized);
         setRemoteMeta({
@@ -50,14 +96,37 @@ export default function DashboardPage() {
           totalPages: Array.isArray(data) ? 1 : Math.max(data.totalPages ?? 1, 1),
           totalItems: Array.isArray(data) ? normalized.length : data.totalItems ?? normalized.length,
         });
-        setStatus({ loading: false, note: "" });
+        setStatus({ loading: false, note: "", phase: "ready", attempt: 0 });
       } catch {
         if (!cancelled) {
           setRemoteMeta({ enabled: false, totalPages: 1, totalItems: 0 });
           if (!isLocalDevelopment()) {
+            const ready = await waitForBackendWake();
+            if (cancelled) return;
+
+            if (ready) {
+              try {
+                const { data, normalized } = await fetchDashboardData();
+                if (cancelled) return;
+
+                setLinks(normalized);
+                setRemoteMeta({
+                  enabled: !Array.isArray(data),
+                  totalPages: Array.isArray(data) ? 1 : Math.max(data.totalPages ?? 1, 1),
+                  totalItems: Array.isArray(data) ? normalized.length : data.totalItems ?? normalized.length,
+                });
+                setStatus({ loading: false, note: "", phase: "ready", attempt: 0 });
+                return;
+              } catch {
+                // fall through to unavailable state
+              }
+            }
+
             setLinks([]);
             setStatus({
               loading: false,
+              phase: "unavailable",
+              attempt: 0,
               note: "Could not load links from the API.",
             });
             return;
@@ -65,6 +134,8 @@ export default function DashboardPage() {
 
           setStatus({
             loading: false,
+            phase: "fallback",
+            attempt: 0,
             note: "Dashboard is using local data until GET /api/urls is reachable.",
           });
         }
@@ -216,12 +287,25 @@ export default function DashboardPage() {
                 placeholder="Search by URL or short code"
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-400 focus:ring-4 focus:ring-blue-100 sm:w-72"
               />
-              <LinkCardPlaceholder />
             </div>
           </div>
 
           {status.note ? <p className="px-6 pt-4 text-sm text-amber-600">{status.note}</p> : null}
-          {status.loading ? <p className="px-6 py-8 text-sm text-slate-500">Loading links...</p> : null}
+          {status.loading ? (
+            <div className="px-6 py-10">
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-6 py-10 text-center">
+                <div className="mb-4 h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
+                <div className="text-lg font-semibold text-slate-900">
+                  {status.phase === "waking" ? "Starting backend..." : "Loading links..."}
+                </div>
+                <p className="mt-2 max-w-md text-sm text-slate-500">
+                  {status.phase === "waking"
+                    ? "Render is waking the API. Wait a minute and we will load your links here automatically."
+                    : "Fetching your latest links and analytics summary."}
+                </p>
+              </div>
+            </div>
+          ) : null}
 
           {!status.loading && paginatedLinks.length ? (
             <div className="overflow-x-auto">
@@ -363,13 +447,5 @@ export default function DashboardPage() {
       />
       <QrModal item={qrItem} open={Boolean(qrItem)} onClose={() => setQrItem(null)} />
     </section>
-  );
-}
-
-function LinkCardPlaceholder() {
-  return (
-    <div className="text-sm text-slate-500">
-      Standard link dashboard
-    </div>
   );
 }
