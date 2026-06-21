@@ -308,78 +308,94 @@ export default function DashboardPage() {
           ) : null}
 
           {!status.loading && paginatedLinks.length ? (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left">
-                <thead>
-                  <tr className="border-b border-slate-200 text-sm text-slate-500">
-                    <th className="px-6 py-4 font-medium">Original URL</th>
-                    <th className="px-6 py-4 font-medium">Short URL</th>
-                    <th className="px-6 py-4 font-medium">Clicks</th>
-                    <th className="px-6 py-4 font-medium">Created</th>
-                    <th className="px-6 py-4 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedLinks.map((item) => (
-                    <tr key={item.id ?? item.code} className="border-b border-slate-100 align-top">
-                      <td className="px-6 py-4">
-                        <div className="max-w-[320px] truncate text-sm text-slate-600">{item.originalUrl}</div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <a
-                          href={item.shortUrl ?? formatShortUrl(item.code)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-sm font-medium text-blue-600 hover:text-blue-500"
-                        >
-                          {item.shortUrl ?? formatShortUrl(item.code)}
-                        </a>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-900">{item.clicks ?? 0}</td>
-                      <td className="px-6 py-4 text-sm text-slate-500">
-                        {new Intl.DateTimeFormat("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        }).format(new Date(item.createdAt))}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleCopy(item.code)}
-                            className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                          >
-                            Copy
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setQrItem(item)}
-                            className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                          >
-                            QR
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setEditingItem(item)}
-                            className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(item.id)}
-                            disabled={deletingId === item.id}
-                            className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-                          >
-                            {deletingId === item.id ? "Deleting..." : "Delete"}
-                          </button>
-                        </div>
-                      </td>
+            <div>
+              <div className="grid gap-4 p-4 lg:hidden">
+                {paginatedLinks.map((item) => (
+                  <LinkCard
+                    key={item.id ?? item.code}
+                    item={item}
+                    onCopy={handleCopy}
+                    onDelete={handleDelete}
+                    onEdit={setEditingItem}
+                    onQr={setQrItem}
+                    deletingId={deletingId}
+                  />
+                ))}
+              </div>
+
+              <div className="hidden overflow-x-auto lg:block">
+                <table className="min-w-full text-left">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-sm text-slate-500">
+                      <th className="px-6 py-4 font-medium">Original URL</th>
+                      <th className="px-6 py-4 font-medium">Short URL</th>
+                      <th className="px-6 py-4 font-medium">Clicks</th>
+                      <th className="px-6 py-4 font-medium">Created</th>
+                      <th className="px-6 py-4 font-medium">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {paginatedLinks.map((item) => (
+                      <tr key={item.id ?? item.code} className="border-b border-slate-100 align-top">
+                        <td className="px-6 py-4">
+                          <div className="max-w-[320px] truncate text-sm text-slate-600">{item.originalUrl}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <a
+                            href={item.shortUrl ?? formatShortUrl(item.code)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                          >
+                            {item.shortUrl ?? formatShortUrl(item.code)}
+                          </a>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-slate-900">{item.clicks ?? 0}</td>
+                        <td className="px-6 py-4 text-sm text-slate-500">
+                          {new Intl.DateTimeFormat("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          }).format(new Date(item.createdAt))}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleCopy(item.code)}
+                              className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                            >
+                              Copy
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setQrItem(item)}
+                              className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                            >
+                              QR
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingItem(item)}
+                              className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(item.id)}
+                              disabled={deletingId === item.id}
+                              className="rounded-xl border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                            >
+                              {deletingId === item.id ? "Deleting..." : "Delete"}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           ) : null}
 

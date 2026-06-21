@@ -7,7 +7,7 @@ const links = [
 
 export default function AppShell({ children }) {
   return (
-    <div className="min-h-screen bg-[#f5f7fb] text-slate-900">
+    <div className="min-h-screen overflow-x-hidden bg-[#f5f7fb] text-slate-900">
       <div className="min-h-screen lg:grid lg:grid-cols-[240px_1fr]">
         <aside className="border-b border-slate-200 bg-white lg:border-b-0 lg:border-r">
           <div className="flex items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:justify-start lg:px-6 lg:py-6">
