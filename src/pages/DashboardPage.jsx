@@ -8,6 +8,7 @@ import Pagination from "../components/Pagination";
 import QrModal from "../components/QrModal";
 import SectionHeading from "../components/SectionHeading";
 import useLocalLinks from "../hooks/useLocalLinks";
+import { isLocalDevelopment } from "../utils/environment";
 import { formatShortUrl } from "../utils/format";
 
 const pageSize = 6;
@@ -53,6 +54,15 @@ export default function DashboardPage() {
       } catch {
         if (!cancelled) {
           setRemoteMeta({ enabled: false, totalPages: 1, totalItems: 0 });
+          if (!isLocalDevelopment()) {
+            setLinks([]);
+            setStatus({
+              loading: false,
+              note: "Could not load links from the API.",
+            });
+            return;
+          }
+
           setStatus({
             loading: false,
             note: "Dashboard is using local data until GET /api/urls is reachable.",
@@ -104,14 +114,26 @@ export default function DashboardPage() {
     setDeletingId(id);
     try {
       await deleteUrl(id);
+      setLinks((current) => current.filter((item) => item.id !== id));
+      setRemoteMeta((current) => ({
+        ...current,
+        totalItems: current.enabled ? Math.max(current.totalItems - 1, 0) : current.totalItems,
+      }));
     } catch {
-      // ponytail: keep local deletion even if remote delete fails so the dashboard stays usable during API bring-up.
+      if (isLocalDevelopment()) {
+        // ponytail: keep local deletion even if remote delete fails so the dashboard stays usable during API bring-up.
+        setLinks((current) => current.filter((item) => item.id !== id));
+        setRemoteMeta((current) => ({
+          ...current,
+          totalItems: current.enabled ? Math.max(current.totalItems - 1, 0) : current.totalItems,
+        }));
+      } else {
+        setStatus({
+          loading: false,
+          note: "Could not delete link. The API request failed.",
+        });
+      }
     }
-    setLinks((current) => current.filter((item) => item.id !== id));
-    setRemoteMeta((current) => ({
-      ...current,
-      totalItems: current.enabled ? Math.max(current.totalItems - 1, 0) : current.totalItems,
-    }));
     setDeletingId("");
   }
 
@@ -146,6 +168,15 @@ export default function DashboardPage() {
       );
       setStatus({ loading: false, note: "" });
     } catch {
+      if (!isLocalDevelopment()) {
+        setStatus({
+          loading: false,
+          note: "Could not save changes. The API request failed.",
+        });
+        setSavingEdit(false);
+        return;
+      }
+
       // ponytail: local edit preview keeps the flow moving until PATCH exists server-side.
       setLinks((current) => current.map((item) => (item.id === editingItem.id ? nextItem : item)));
       setStatus({

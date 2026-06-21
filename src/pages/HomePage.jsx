@@ -4,6 +4,7 @@ import { createShortUrl } from "../api/urlApi";
 import MetricCard from "../components/MetricCard";
 import SectionHeading from "../components/SectionHeading";
 import useLocalLinks from "../hooks/useLocalLinks";
+import { isLocalDevelopment } from "../utils/environment";
 import { formatShortUrl } from "../utils/format";
 import { buildFallbackLink } from "../utils/mockData";
 
@@ -33,6 +34,14 @@ export default function HomePage() {
       setLinks((current) => [nextItem, ...current.filter((item) => item.code !== nextItem.code)]);
       setLongUrl("");
     } catch (error) {
+      if (!isLocalDevelopment()) {
+        setStatus({
+          loading: false,
+          error: error?.response?.data?.message || "API unavailable. Link was not created.",
+        });
+        return;
+      }
+
       const nextItem = buildFallbackLink(longUrl);
       // ponytail: local fallback keeps the UI usable until the API is actually ready.
       setResult(nextItem);
