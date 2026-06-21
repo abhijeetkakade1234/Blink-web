@@ -39,13 +39,6 @@ export default function AppShell({ children }) {
               ))}
             </div>
           </nav>
-
-          <div className="hidden px-4 pb-6 pt-16 lg:block">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-              <div className="text-sm font-medium text-slate-900">Alex Smith</div>
-              <div className="mt-1 text-sm text-slate-500">alex@example.com</div>
-            </div>
-          </div>
         </aside>
 
         <div className="min-w-0">
